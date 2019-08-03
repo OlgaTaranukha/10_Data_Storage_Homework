@@ -101,18 +101,17 @@ def tobs():
                                                           
     results = session.query(Measurement.date, Measurement.tobs).\
         filter(Measurement.date>=start).all()
-    tobs = []
+    temperature = []
     for date, tobs in results:
-        temp = tobs.format(".2f")
         tobs_dict = {}
         tobs_dict["date"] = date
         tobs_dict["tobs"] = tobs
-        tobs.append(tobs_dict)
+        temperature.append(tobs_dict)
                              
-    return jsonify(tobs)
+    return jsonify(temperature)
 
-@app.route("/api/v1.0/<start>")
-def daily_temp(start):
+@app.route("/api/v1.0/<start_date>")
+def daily_temp(start_date):
     """TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
     
     Args:
@@ -121,11 +120,12 @@ def daily_temp(start):
     Returns:
         TMIN, TAVE, and TMAX
     """
+    session = Session(engine)
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
                              
-    return jsonify(session.query(*sel).filter(Measurement.date >= start).all())
+    return jsonify(session.query(*sel).filter(Measurement.date >= start_date).all())
 
-@app.route("/api/v1.0/<start>/<end>")
+@app.route("/api/v1.0/<start_date>/<end_date>")
 def daily_temp_1(start_date, end_date):
     """TMIN, TAVG, and TMAX for a list of dates.
     
@@ -136,11 +136,11 @@ def daily_temp_1(start_date, end_date):
     Returns:
         TMIN, TAVE, and TMAX
     """
-
+    session = Session(engine)
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)] 
     
-    return jsonify(session.query(*sel).filter(Measurement.date >= date_start).\
-        filter(Measurement.date <= date_end).all())
+    return jsonify(session.query(*sel).filter(Measurement.date >= start_date).\
+        filter(Measurement.date <= end_date).all())
 
 
 if __name__ == "__main__":
